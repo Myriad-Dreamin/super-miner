@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cstring>
 #include <stdexcept>
+#include <functional>
 #include "../alter/generate.h"
 #include "../alter/tester.h"
 #include "local_tools.h"
@@ -19,16 +20,14 @@ private:
     int map_row, map_col;
     int mne_cnt, mne_siz;
     double map_sil, map_sir;
-    BiDistributionGenerate<ArrType> gen;
+    std::function<std::pair<GenType, GenType>()> gen;
     ArrType **space;
 public:
     MinerMapGenerator(
         const int row, const int col,
         const int mine_count, const int mine_size,
         const double sigmaL, const double sigmaR,
-        const unsigned long long your_seed
-    )
-    {
+    ) {
         map_row = row;
         map_col = col;
         mne_cnt = mine_count;
@@ -37,7 +36,7 @@ public:
         map_sir = sigmaR;
 
 
-        gen = BiDistributionGenerate<int>(mine_count, your_seed);
+        gen = BiDistributionGenerate<int>(mine_count);
         space = new *ArrType[row];
         for (int i = 0; i < row; i++) {
             space[i] = new ArrType[col]
