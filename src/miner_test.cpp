@@ -1,5 +1,5 @@
 
-#include "miner.h"
+#include "miner_tester.h"
 
 int main ()
 {
