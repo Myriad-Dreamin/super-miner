@@ -7,6 +7,28 @@
 #include <random>
 #include <utility>
 
+# define PRINT_ARR_2(A, row, col) \
+    do {\
+        for (int myprinter_i = 0; myprinter_i < row; myprinter_i++) {\
+            for (int myprinter_j = 0; myprinter_j < col; myprinter_j++) {\
+                std::cout << A[myprinter_i][myprinter_j] << " ";\
+            }\
+            std::cout << std::endl;\
+        }\
+    }while(0)\
+
+# define PRINT_ARR_2_PRF(PRF, A, row, col) \
+    do {\
+        for (int myprinter_i = 0; myprinter_i < row; myprinter_i++) {\
+            for (int myprinter_j = 0; myprinter_j < col; myprinter_j++) {\
+                std::cout << PRF << A[myprinter_i][myprinter_j] << " ";\
+            }\
+            std::cout << std::endl;\
+        }\
+    }while(0)\
+
+
+
 double rand_double(double ranger=1)
 {
     double mxranger = ((1ULL << 32) - 1) * ((1ULL << 32) - 1);
@@ -134,9 +156,7 @@ namespace normal_distribution {
     typename functor<GenType>::functory
     functory_range(double varxl, double varxr)
     {
-        return [varxl, varxr
-
-            ](double mu1, double mu2)
+        return [varxl, varxr](double mu1, double mu2)
             mutable -> std::function<std::pair<GenType, GenType>()>
         {
             auto gen1 = std::bind(
@@ -154,5 +174,37 @@ namespace normal_distribution {
     }
 } // end of namespace normal distribution
 } // end of bivari
+
+template<typename ArrType>
+ArrType **require_two_dimensional_space(long long row, long long col)
+{
+    ArrType **ret = new ArrType*[row];
+    for (int i = 0; i < row; i++) {
+        ret[i] = new ArrType[col];
+    }
+    return ret;
+}
+
+template<typename ArrType>
+void release_two_dimensional_space(ArrType ***space, long long row)
+{
+    for (int i = 0; i < row; i++) {
+        delete[] (*space)[i];
+    }
+    delete *space;
+    *space = nullptr;
+}
+
+template<typename ArrType>
+void clear_two_dimensional_space(ArrType **space, long long row, long long col)
+{
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            space[i][j] = 0;
+        }
+    }
+}
+
+
 
 # endif

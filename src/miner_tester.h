@@ -138,7 +138,7 @@ public:
         for (int i = 0; i < mine_cnt; i++) {
             x = rand_uint() % map_row;
             y = rand_uint() % map_col;
-            std::cout << "randcenter " << x << " " << y << std::endl;
+            // std::cout << "randcenter " << x << " " << y << std::endl;
             z = rand_uint() % mine_siz;
             auto gen = gen_functory(x, y);
             while(z--) {
@@ -158,25 +158,63 @@ public:
 
 
 template<typename ArrType>
-class Miner //: public Tester
+class Miner: public Tester
 {
 private:
     int map_row, map_col;
     const ArrType **space;
+    std::string self_path;
 public:
-    Miner() //: Tester()
+    Miner(): Tester()
     {
+        self_path = "";
         map_row = map_col = 0;
         ArrType ***as_assign = const_cast<ArrType ***>(&space);
         *as_assign = nullptr;
     }
 
-    // Miner(const std::string &file_path): Tester(file_path)
-    // {
-    //     map_row = map_col = 0;
-    //     space = nullptr;
-    // }
+    Miner(const std::string &file_path): Tester(file_path)
+    {
+        self_path = file_path;
+        map_row = map_col = 0;
+        space = nullptr;
+    }
 
+    Miner(const Miner &rg)
+    {
+        if (this == &rg) {
+            return;
+        }
+        Tester::close();
+        if (rg.self_path != "") {
+            Tester::open(rg.self_path);
+        }
+
+        map_row = rg.map_row;
+        map_col = rg.map_col;
+        self_path = rg.self_path;
+        ArrType ***as_assign = const_cast<ArrType ***>(&space);
+        *as_assign = const_cast<ArrType**>(rg.space);
+    }
+
+    Miner(Miner &&rg)
+    {
+        if (this == &rg) {
+            return;
+        }
+        Tester::close();
+        map_row = rg.map_row;
+        map_col = rg.map_col;
+        
+        if (rg.self_path != "") {
+            Tester::open(rg.self_path);
+        }
+        rg.close();
+        self_path = std::move(rg.self_path);
+        ArrType ***as_assign = const_cast<ArrType ***>(&space);
+        *as_assign = const_cast<ArrType**>(rg.space);
+    }
+    
     void read_map(const ArrType **out_space, int row, int col)
     {
         map_row = row; map_col = col;
