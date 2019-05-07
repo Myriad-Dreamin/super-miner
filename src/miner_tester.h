@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <functional>
 #include <iomanip>
+#include "miner.h"
 #include "../alter/generate.h"
 #include "../alter/tester.h"
 #include "local_tools.h"
@@ -45,9 +46,9 @@ public:
 
         gen_functory = bivari::normal_distribution::functory_range<int>(sigmaL, sigmaR);
 
-        space = new ArrType*[row];
-        for (int i = 0; i < row; i++) {
-            space[i] = new ArrType[col];
+        space = new ArrType*[map_row];
+        for (int i = 0; i < map_row; i++) {
+            space[i] = new ArrType[map_col];
         }
     }
 
@@ -61,9 +62,9 @@ public:
 
         gen_functory = bivari::normal_distribution::functory_range<int>(rg.sigl, rg.sigr);
 
-        space = new ArrType*[rg.row];
-        for (int i = 0; i < rg.row; i++) {
-            space[i] = new ArrType[rg.col];
+        space = new ArrType*[rg.map_row];
+        for (int i = 0; i < rg.map_row; i++) {
+            space[i] = new ArrType[rg.map_col];
         }
     }
 
@@ -160,7 +161,7 @@ public:
 template<typename ArrType>
 class Miner: public Tester
 {
-private:
+protected:
     int map_row, map_col;
     const ArrType **space;
     std::string self_path;
@@ -215,9 +216,9 @@ public:
         *as_assign = const_cast<ArrType**>(rg.space);
     }
     
-    void read_map(const ArrType **out_space, int row, int col)
+    void read_map(const ArrType **out_space, int map_row, int map_col)
     {
-        map_row = row; map_col = col;
+        map_row = map_row; map_col = map_col;
         ArrType ***as_assign = const_cast<ArrType ***>(&space);
         *as_assign = const_cast<ArrType **>(out_space);
     }
@@ -230,6 +231,86 @@ public:
             }
             std::cout << std::endl;
         }
+    }
+};
+
+template<typename ArrType>
+class SnakeMiner: public Miner<ArrType>
+{
+public:
+    SnakeMiner(): Miner<ArrType>() {}
+
+    SnakeMiner(const std::string &file_path): Miner<ArrType>(file_path) {}
+    
+    void run(int k)
+    {
+        ArrType ret = 0;
+        ArrType **dp = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);
+        ArrType **sig = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);
+        Tester::run(snake_run::bind_variables(
+            ret, dp, sig,
+            Miner<ArrType>::space,
+            Miner<ArrType>::map_row,
+            Miner<ArrType>::map_col,
+            k
+        ));
+        Tester::show();
+        Tester::settle_clock();
+        release_two_dimensional_space<ArrType>(&dp, Miner<ArrType>::map_row);
+        release_two_dimensional_space<ArrType>(&sig, Miner<ArrType>::map_row);
+    }
+};
+
+template<typename ArrType>
+class ImageMiner: public Miner<ArrType>
+{
+public:
+    ImageMiner(): Miner<ArrType>() {}
+
+    ImageMiner(const std::string &file_path): Miner<ArrType>(file_path) {}
+    
+    void run(int k, double c)
+    {
+        ArrType ret = 0;
+        ArrType **dp = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);
+        ArrType **sig = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);
+        Tester::run(image_run::bind_variables(
+            ret, dp, sig,
+            Miner<ArrType>::space,
+            Miner<ArrType>::map_row,
+            Miner<ArrType>::map_col,
+            k, c
+        ));
+        Tester::show();
+        Tester::settle_clock();
+        release_two_dimensional_space<ArrType>(&dp, Miner<ArrType>::map_row);
+        release_two_dimensional_space<ArrType>(&sig, Miner<ArrType>::map_row);
+    }
+};
+
+template<typename ArrType>
+class GodMiner: public Miner<ArrType>
+{
+public:
+    GodMiner(): Miner<ArrType>() {}
+
+    GodMiner(const std::string &file_path): Miner<ArrType>(file_path) {}
+    
+    void run()
+    {
+        ArrType ret = 0;
+        ArrType **dp = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);
+        ArrType **sig = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);
+        Tester::run(god_run::bind_variables(
+            ret, dp, sig,
+            Miner<ArrType>::space,
+            Miner<ArrType>::map_row,
+            Miner<ArrType>::map_col
+        ));
+        Tester::show();
+        Tester::settle_clock();
+        release_two_dimensional_space<ArrType>(&dp, Miner<ArrType>::map_row);
+        release_two_dimensional_space<ArrType>(&sig, Miner<ArrType>::map_row);
     }
 };
 
