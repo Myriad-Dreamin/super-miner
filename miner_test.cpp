@@ -1,6 +1,7 @@
 
+#define DEBUG
 #include "./src/miner_tester.h"
-#include "./src/local_tools.h"
+#include "./alter/tools.h"
 #include "./src/miner.h"
 
 int main ()

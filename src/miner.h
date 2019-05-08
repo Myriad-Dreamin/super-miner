@@ -5,7 +5,7 @@
 #include <functional>
 #include <algorithm>
 #include "../alter/tools.h"
-#include "local_tools.h"
+#include "../alter/generate.h"
 #include <random>
 #include <ctime>
 #include <iomanip>
@@ -225,11 +225,68 @@ namespace god_run {
     }
 
     template<typename ArrType>
+    void solve_absent(
+        ArrType &ret, ArrType **dp, ArrType **sig,
+        const ArrType **mp, const ArrType **ab_mp, const int row, const int col)
+    {
+        clear_two_dimensional_space<ArrType>(sig, row, col);
+        dp[row - 1][col - 1] = ab_mp[row - 1][col - 1];
+        for (int i = row - 2; i >= 0; i--) {
+            dp[i][col - 1] = dp[i + 1][col - 1] + ab_mp[i][col - 1];
+        }
+        for (int i = col - 2; i >= 0; i--) {
+            dp[row - 1][i] = dp[row - 1][i + 1] + ab_mp[row - 1][i];
+        }
+        for (int i = row - 2; i >= 0; i--) {
+            for (int j = col - 2; j >= 0; j--) {
+                dp[i][j] = std::max(dp[i][j + 1], dp[i + 1][j]) + ab_mp[i][j];
+            }
+        }
+        ret = 0;
+        for (int curx = 0, cury = 0;;) {
+            if (curx == row - 1) {
+                while (cury < col) {
+                    sig[curx][cury] = 1;
+                    ret = ret + mp[curx][cury];
+                    cury++;
+                }
+                break;
+            }
+            if (cury == col - 1) {
+                while (curx < row) {
+                    sig[curx][cury] = 1;
+                    ret = ret + mp[curx][cury];
+                    curx++;
+                }
+                break;
+            }
+            if (dp[curx + 1][cury] > dp[curx][cury + 1]) {
+                curx++;
+            } else {
+                cury++;
+            }
+            ret = ret + mp[curx][cury];
+            sig[curx][cury] = 1;
+        }
+        return;
+    }
+
+    template<typename ArrType>
     std::function<void()> bind_variables(
-        ArrType &ret, ArrType **dp, ArrType **sig, const ArrType **mp, const int row, const int col
+        ArrType *ret, ArrType **dp, ArrType **sig, const ArrType **mp, const int row, const int col
     ) {
         return [ret, dp, sig, mp, row, col] ()  mutable -> void {
-            solve(ret, dp, sig, mp, row, col);
+            solve(*ret, dp, sig, mp, row, col);
+        };
+    }
+
+    template<typename ArrType>
+    std::function<void()> bind_variables_absent(
+        ArrType *ret, ArrType **dp, ArrType **sig,
+        const ArrType **mp, const ArrType **ab_mp, const int row, const int col
+    ) {
+        return [ret, dp, sig, mp, ab_mp, row, col] ()  mutable -> void {
+            solve_absent(*ret, dp, sig, mp, ab_mp, row, col);
         };
     }
 }
@@ -266,10 +323,10 @@ namespace snake_run {
 
     template<typename ArrType>
     std::function<void()> bind_variables(
-        ArrType &ret, ArrType **dp, ArrType **sig, const ArrType **mp, const int row, const int col, const int k
+        ArrType *ret, ArrType **dp, ArrType **sig, const ArrType **mp, const int row, const int col, const int k
     ) {
         return [ret, dp, sig, mp, row, col, k] () mutable -> void {
-            solve(ret, dp, sig, mp, row, col, k);
+            solve(*ret, dp, sig, mp, row, col, k);
         };
     }
 }
@@ -306,11 +363,11 @@ namespace image_run {
 
     template<typename ArrType>
     std::function<void()> bind_variables(
-        ArrType &ret, ArrType **dp, ArrType **sig,
+        ArrType *ret, ArrType **dp, ArrType **sig,
         const ArrType **mp, const int row, const int col, const int k, const double c
     ) {
         return [ret, dp, sig, mp, row, col, k, c] () mutable -> void {
-            solve(ret, dp, sig, mp, row, col, k, c);
+            solve(*ret, dp, sig, mp, row, col, k, c);
         };
     }
 }
