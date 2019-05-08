@@ -8,10 +8,28 @@
 #include <stdexcept>
 #include <functional>
 #include <iomanip>
+#include <cassert>
 #include "miner.h"
 #include "../alter/generate.h"
 #include "../alter/tester.h"
 #include "local_tools.h"
+
+# define MAKE_RUN(INSERTED_FUNCTION, EXTEND_INFO) \
+    do {\
+        ArrType ret = 0;\
+        ArrType **dp = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);\
+        ArrType **sig = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);\
+        INSERTED_FUNCTION;\
+        Tester::show();\
+        Tester::block(k);\
+        Tester::block(Tester::used_time());\
+        Tester::block(ret);\
+        EXTEND_INFO;\
+        Tester::newline();\
+        Tester::settle_clock();\
+        release_two_dimensional_space<ArrType>(&dp, Miner<ArrType>::map_row);\
+        release_two_dimensional_space<ArrType>(&sig, Miner<ArrType>::map_row);\
+    } while(0)\
 
 
 template<typename ArrType>
@@ -206,7 +224,7 @@ public:
         Tester::close();
         map_row = rg.map_row;
         map_col = rg.map_col;
-        
+
         if (rg.self_path != "") {
             Tester::open(rg.self_path);
         }
@@ -216,9 +234,9 @@ public:
         *as_assign = const_cast<ArrType**>(rg.space);
     }
     
-    void read_map(const ArrType **out_space, int map_row, int map_col)
+    void read_map(const ArrType **out_space, int row, int col)
     {
-        map_row = map_row; map_col = map_col;
+        map_row = row; map_col = col;
         ArrType ***as_assign = const_cast<ArrType ***>(&space);
         *as_assign = const_cast<ArrType **>(out_space);
     }
@@ -244,20 +262,40 @@ public:
     
     void run(int k)
     {
-        ArrType ret = 0;
-        ArrType **dp = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);
-        ArrType **sig = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);
-        Tester::run(snake_run::bind_variables(
+        MAKE_RUN(Tester::run(snake_run::bind_variables(
             ret, dp, sig,
-            Miner<ArrType>::space,
-            Miner<ArrType>::map_row,
-            Miner<ArrType>::map_col,
+            this->space,
+            this->map_row,
+            this->map_col,
             k
-        ));
-        Tester::show();
-        Tester::settle_clock();
-        release_two_dimensional_space<ArrType>(&dp, Miner<ArrType>::map_row);
-        release_two_dimensional_space<ArrType>(&sig, Miner<ArrType>::map_row);
+        ), [ret, sig, Miner<ArrType>::space]() mutable -> void {
+            auto mp = &Miner<ArrType>::space;
+            ArrType tmpret = mp[0][0];
+            for (int curx = 0, cury = 0;;) {
+                if (curx == row - 1) {
+                    while (cury < col) {
+                        tmpret = tmpret + mp[curx][cury];
+                        cury++;
+                    }
+                    break;
+                }
+                if (cury == col - 1) {
+                    while (curx < row) {
+                        tmpret = tmpret + mp[curx][cury];
+                        curx++;
+                    }
+                    break;
+                }
+                if (sig[curx + 1][cury]) {
+                    curx++;
+                } else {
+                    cury++;
+                }
+                tmpret = tmpret + mp[curx][cury];
+            }
+            assert(tmpret == ret);
+            return;
+        }), {});
     }
 };
 
@@ -268,23 +306,45 @@ public:
     ImageMiner(): Miner<ArrType>() {}
 
     ImageMiner(const std::string &file_path): Miner<ArrType>(file_path) {}
-    
+
     void run(int k, double c)
     {
-        ArrType ret = 0;
-        ArrType **dp = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);
-        ArrType **sig = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);
-        Tester::run(image_run::bind_variables(
+        MAKE_RUN(Tester::run(image_run::bind_variables(
             ret, dp, sig,
             Miner<ArrType>::space,
             Miner<ArrType>::map_row,
             Miner<ArrType>::map_col,
             k, c
-        ));
-        Tester::show();
-        Tester::settle_clock();
-        release_two_dimensional_space<ArrType>(&dp, Miner<ArrType>::map_row);
-        release_two_dimensional_space<ArrType>(&sig, Miner<ArrType>::map_row);
+        ), [ret, sig, Miner<ArrType>::space]() mutable -> void {
+            auto mp = &Miner<ArrType>::space;
+            ArrType tmpret = mp[0][0];
+            for (int curx = 0, cury = 0;;) {
+                if (curx == row - 1) {
+                    while (cury < col) {
+                        tmpret = tmpret + mp[curx][cury];
+                        cury++;
+                    }
+                    break;
+                }
+                if (cury == col - 1) {
+                    while (curx < row) {
+                        tmpret = tmpret + mp[curx][cury];
+                        curx++;
+                    }
+                    break;
+                }
+                if (sig[curx + 1][cury]) {
+                    curx++;
+                } else {
+                    cury++;
+                }
+                tmpret = tmpret + mp[curx][cury];
+            }
+            assert(tmpret == ret);
+            return;
+        }),{
+            Tester::block(c);
+        });
     }
 };
 
@@ -295,22 +355,43 @@ public:
     GodMiner(): Miner<ArrType>() {}
 
     GodMiner(const std::string &file_path): Miner<ArrType>(file_path) {}
-    
+
     void run()
     {
-        ArrType ret = 0;
-        ArrType **dp = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);
-        ArrType **sig = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);
-        Tester::run(god_run::bind_variables(
+        int k = 0;
+        MAKE_RUN(Tester::run(god_run::bind_variables(
             ret, dp, sig,
             Miner<ArrType>::space,
             Miner<ArrType>::map_row,
             Miner<ArrType>::map_col
-        ));
-        Tester::show();
-        Tester::settle_clock();
-        release_two_dimensional_space<ArrType>(&dp, Miner<ArrType>::map_row);
-        release_two_dimensional_space<ArrType>(&sig, Miner<ArrType>::map_row);
+        ), [ret, sig, Miner<ArrType>::space]() mutable -> void {
+            auto mp = &Miner<ArrType>::space;
+            ArrType tmpret = mp[0][0];
+            for (int curx = 0, cury = 0;;) {
+                if (curx == row - 1) {
+                    while (cury < col) {
+                        tmpret = tmpret + mp[curx][cury];
+                        cury++;
+                    }
+                    break;
+                }
+                if (cury == col - 1) {
+                    while (curx < row) {
+                        tmpret = tmpret + mp[curx][cury];
+                        curx++;
+                    }
+                    break;
+                }
+                if (sig[curx + 1][cury]) {
+                    curx++;
+                } else {
+                    cury++;
+                }
+                tmpret = tmpret + mp[curx][cury];
+            }
+            assert(tmpret == ret);
+            return;
+        }),{});
     }
 };
 

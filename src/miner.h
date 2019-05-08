@@ -41,8 +41,7 @@ namespace map_evaluator {
         }
 
         return [dp, mp, row, col, k] (int x, int y) mutable -> int {
-			int tc;
-            switch (((x == row - 1) << 1) | (y == col - 1)) {
+			switch (((x == row - 1) << 1) | (y == col - 1)) {
             case 0: {
                 for (int i = std::min(x + k - 1, row - 1); i >= x; i--) {
                     int j = y + k - (i - x + 1);
@@ -120,8 +119,7 @@ namespace map_evaluator {
         }
 
         return [dp, mp, row, col, k, c] (int x, int y) mutable -> int {
-			int tc; 
-            switch (((x == row - 1) << 1) | (y == col - 1)) {
+			switch (((x == row - 1) << 1) | (y == col - 1)) {
             case 0: {
                 dp[x][y] = mp[x][y];
                 for(int i = x + 1; i < row; i++) {
@@ -212,7 +210,7 @@ namespace god_run {
             if (cury == col - 1) {
                 while (curx < row) {
                     sig[curx][cury] = 1;
-                    cury++;
+                    curx++;
                 }
                 break;
             }
@@ -243,10 +241,11 @@ namespace snake_run {
 	{
         clear_two_dimensional_space<ArrType>(sig, row, col);
         auto evaluator = map_evaluator::simple<ArrType>(dp, mp, row, col, k);
+        
         ret = mp[0][0];
         sig[0][0] = 1;
         for (int curx = 0, cury = 0;;) {
-            switch(evaluator(curx, cury)) {
+        	switch(evaluator(curx, cury)) {
                 case 1:{
                     cury++;
                     break;
