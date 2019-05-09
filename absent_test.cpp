@@ -18,7 +18,7 @@ int main ()
     auto absent_gauss2 = AbsentMiner<int>("gauss2.csv");
     auto absent_median = AbsentMiner<int>("median.csv");
     auto absent_gen = AbsentMinerMapGenerator<int>();
-    for(int cc = 0; cc < 10; cc++) {
+    for(int cc = 0; cc < 1; cc++) {
         auto gen = BiNormMinerMapGenerator<int>(map_row, map_col, 200, 100000, 1, 4);
         auto mp = gen.gen();
         god_miner.read_map(mp, map_row, map_col);
