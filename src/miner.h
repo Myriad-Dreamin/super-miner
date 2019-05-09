@@ -4,8 +4,10 @@
 
 #include <functional>
 #include <algorithm>
+#include <queue>
 #include "../alter/tools.h"
 #include "../alter/generate.h"
+#include "convolution.h"
 #include <random>
 #include <ctime>
 #include <iomanip>
@@ -180,6 +182,31 @@ namespace map_evaluator {
 }
 
 
+
+namespace map_guesser {
+
+    template<typename KerType, typename ArrType>
+    std::function<void(ArrType **, int, int)> self_convolution(
+        typename KernalMatrix<KerType>::simple_matrix33 kernal
+    ) {
+        return [kernal](ArrType **mat, int row, int col) mutable -> void {
+            convolutor_33<KerType, ArrType> con(kernal);
+            con.convolute(mat, row, col, mat);
+        };
+    }
+
+    template<typename ArrType>
+    std::function<void(ArrType **, int, int)> self_convolution_nonlinear(
+        typename NonlinearKernalMatrix<ArrType>::nonlinear_filter_generator kernal_generator
+    ) {
+        return [kernal_generator](ArrType **mat, int row, int col) mutable -> void {
+            convolutor_33_non_linear<ArrType> con(kernal_generator);
+            con.convolute(mat, row, col, mat);
+        };
+    }
+}
+
+
 namespace god_run {
 
     template<typename ArrType>
@@ -260,13 +287,13 @@ namespace god_run {
                 }
                 break;
             }
+            ret = ret + mp[curx][cury];
+            sig[curx][cury] = 1;
             if (dp[curx + 1][cury] > dp[curx][cury + 1]) {
                 curx++;
             } else {
                 cury++;
             }
-            ret = ret + mp[curx][cury];
-            sig[curx][cury] = 1;
         }
         return;
     }

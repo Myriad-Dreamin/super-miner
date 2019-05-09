@@ -15,18 +15,11 @@
 #include "../alter/generate.h"
 #include "../alter/tester.h"
 
-# define MAKE_RUN(INSERTED_FUNCTION, EXTEND_INFO) \
+# define MAKE_RUN(INSERTED_FUNCTION) \
     do {\
-        ArrType ret = 0;\
         ArrType **dp = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);\
         ArrType **sig = require_two_dimensional_space<ArrType>(Miner<ArrType>::map_row, Miner<ArrType>::map_col);\
         INSERTED_FUNCTION;\
-        Tester::show();\
-        Tester::block(k);\
-        Tester::block(Tester::used_time());\
-        Tester::block(ret);\
-        EXTEND_INFO;\
-        Tester::newline();\
         Tester::settle_clock();\
         release_two_dimensional_space<ArrType>(&dp, Miner<ArrType>::map_row);\
         release_two_dimensional_space<ArrType>(&sig, Miner<ArrType>::map_row);\
@@ -98,7 +91,7 @@ public:
             return;
         }
         
-        if (this->space != nullptr && this->map_row != rg.map_row && this->map_col != rg.map_col) {
+        if (this->space != nullptr && (this->map_row != rg.map_row || this->map_col != rg.map_col)) {
             for (int i = 0; i < this->map_row; i++) {
                 delete[] this->space[i];
             }
@@ -241,7 +234,7 @@ public:
             return;
         }
         
-        if (this->space != nullptr && this->map_row != rg.map_row && this->map_col != rg.map_col) {
+        if (this->space != nullptr && (this->map_row != rg.map_row || this->map_col != rg.map_col)) {
             for (int i = 0; i < this->map_row; i++) {
                 delete[] this->space[i];
             }
@@ -260,8 +253,39 @@ public:
             }
         }
 
+        int line_size = sizeof(ArrType) * rg.map_col;
         for (int i = 0; i < rg.map_row; i++) {
-            memcpy(this->space[i], rg.space[i], sizeof(ArrType) * rg.map_col);
+            memcpy(this->space[i], rg.space[i], line_size);
+        }
+    }
+
+    AbsentMinerMapGenerator(const BiMapGenerator<ArrType> &rg) {
+        if (this == &rg) {
+            return;
+        }
+        
+        if (this->space != nullptr && (this->map_row != rg.map_row || this->map_col != rg.map_col)) {
+            for (int i = 0; i < this->map_row; i++) {
+                delete[] this->space[i];
+            }
+            delete[] this->space;
+            this->space = nullptr;
+        }
+
+        this->map_row = rg.map_row;
+        this->map_col = rg.map_col;
+
+
+        if (this->space == nullptr) {
+            this->space = new ArrType*[rg.map_row];
+            for (int i = 0; i < rg.map_row; i++) {
+                this->space[i] = new ArrType[rg.map_col];
+            }
+        }
+
+        int line_size = sizeof(ArrType) * rg.map_col;
+        for (int i = 0; i < rg.map_row; i++) {
+            memcpy(this->space[i], rg.space[i], line_size);
         }
     }
 
@@ -287,7 +311,7 @@ public:
 
     const ArrType **gen(const BiMapGenerator<ArrType> &bimap, double pec, ArrType invalid_arr_element)
     {
-        if (this->space != nullptr && this->map_col != bimap.col_size() && this->map_row != bimap.row_size()) {
+        if (this->space != nullptr && (this->map_col != bimap.col_size() || this->map_row != bimap.row_size())) {
             for (int i = 0; i < this->map_row; i++) {
                 delete[] this->space[i];
             }
@@ -320,6 +344,13 @@ public:
 
         delete[] gen_range;
 
+        return this->exported_space();
+    }
+
+    const ArrType **guess(
+        std::function<void(ArrType**, int, int)> guesser
+    ) {
+        guesser(this->space, this->map_row, this->map_col);
         return this->exported_space();
     }
 };
@@ -393,12 +424,15 @@ public:
 
     void show_map()
     {
+    # ifndef DONOTPRINT
         for (int i = 0; i < map_row; i++) {
             for (int j = 0; j < map_col; j++) {
                 std::cout << std::setw(2) << space[i][j] << " ";
             }
             std::cout << std::endl;
         }
+    # endif
+        return;
     }
 };
 
@@ -410,8 +444,9 @@ public:
 
     SnakeMiner(const std::string &file_path): Miner<ArrType>(file_path) {}
     
-    void run(int k)
+    ArrType run(int k)
     {
+        ArrType ret = 0;
         auto &mp = Miner<ArrType>::space;
         auto &row = Miner<ArrType>::map_row;
         auto &col = Miner<ArrType>::map_col;
@@ -443,7 +478,8 @@ public:
             }
             assert(tmpret == ret);
             return;
-        }), {});
+        }));
+        return ret;
     }
 };
 
@@ -455,8 +491,9 @@ public:
 
     ImageMiner(const std::string &file_path): Miner<ArrType>(file_path) {}
 
-    void run(int k, double c)
+    ArrType run(int k, double c)
     {
+        ArrType ret = 0;
         auto &mp = Miner<ArrType>::space;
         auto &row = Miner<ArrType>::map_row;
         auto &col = Miner<ArrType>::map_col;
@@ -488,9 +525,9 @@ public:
             }
             assert(tmpret == ret);
             return;
-        }),{
-            Tester::block(c);
-        });
+        }));
+
+        return ret;
     }
 };
 
@@ -502,8 +539,9 @@ public:
 
     GodMiner(const std::string &file_path): Miner<ArrType>(file_path) {}
 
-    void run()
+    ArrType run()
     {
+        ArrType ret = 0;
         int k = 0;
         auto &mp = Miner<ArrType>::space;
         auto &row = Miner<ArrType>::map_row;
@@ -536,7 +574,9 @@ public:
             }
             assert(tmpret == ret);
             return;
-        }),{});
+        }));
+
+        return ret;
     }
 };
 
@@ -616,34 +656,87 @@ public:
         *as_assign = const_cast<ArrType **>(out_space);
     }
 
-    void read_absent_map_and_guess(const ArrType **out_space, int row, int col)
+    void read_absent_map(const ArrType **out_space, int row, int col)
     {
-        map_row = row; map_col = col;
+        if (map_row != row || map_col != col) {
+            throw std::logic_error("absent_map does not match current map size");
+        }
         ArrType ***as_assign = const_cast<ArrType ***>(&absent_space);
         *as_assign = const_cast<ArrType **>(out_space);
     }
 
     void show_map()
     {
+    # ifndef DONOTPRINT
         for (int i = 0; i < map_row; i++) {
             for (int j = 0; j < map_col; j++) {
                 std::cout << std::setw(2) << space[i][j] << " ";
             }
             std::cout << std::endl;
         }
+    # endif
+        return ;
     }
 
     void show_absent_map()
     {
+    # ifndef DONOTPRINT
         for (int i = 0; i < map_row; i++) {
             for (int j = 0; j < map_col; j++) {
                 std::cout << std::setw(2) << absent_space[i][j] << " ";
             }
             std::cout << std::endl;
         }
+    # endif
     }
 
-    void run(double c)
+    ArrType run()
+    {
+        int k = 0;
+        auto &mp = space;
+        auto &ab_mp = absent_space;
+        auto &row = map_row;
+        auto &col = map_col;
+
+        ArrType ret = 0;
+        ArrType **dp = require_two_dimensional_space<ArrType>(map_row, map_col);
+        ArrType **sig = require_two_dimensional_space<ArrType>(map_row, map_col);
+        Tester::run(god_run::bind_variables_absent(
+            &ret, dp, sig, mp, ab_mp, row, col
+        ), [&ret, sig, mp, row, col]() mutable -> void {
+            ArrType tmpret = 0;
+            for (int curx = 0, cury = 0;;) {
+                if (curx == row - 1) {
+                    while (cury < col) {
+                        tmpret = tmpret + mp[curx][cury];
+                        cury++;
+                    }
+                    break;
+                }
+                if (cury == col - 1) {
+                    while (curx < row) {
+                        tmpret = tmpret + mp[curx][cury];
+                        curx++;
+                    }
+                    break;
+                }
+                tmpret = tmpret + mp[curx][cury];
+                if (sig[curx + 1][cury]) {
+                    curx++;
+                } else {
+                    cury++;
+                }
+            }
+            assert(tmpret == ret);
+            return;
+        });
+        Tester::settle_clock();
+        release_two_dimensional_space<ArrType>(&dp, map_row);
+        release_two_dimensional_space<ArrType>(&sig, map_row);
+        return ret;
+    }
+
+    ArrType run_dense(int c)
     {
         int k = 0;
         auto &mp = space;
@@ -684,14 +777,13 @@ public:
             return;
         });
         Tester::show();
-        Tester::block(k);
-        Tester::block(Tester::used_time());
-        Tester::block(ret);
         Tester::block(c);
+        Tester::block(ret);
         Tester::newline();
         Tester::settle_clock();
         release_two_dimensional_space<ArrType>(&dp, map_row);
         release_two_dimensional_space<ArrType>(&sig, map_row);
+        return ret;
     }
 };
 
