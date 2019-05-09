@@ -1,0 +1,386 @@
+%!TEX program = xelatex
+\documentclass[UTF8]{ctexart}
+
+% math bracket
+%  ()
+\newcommand{\brc}[1]{\left({{}#1}\right)}
+%  []
+\newcommand{\brm}[1]{\left[{{}#1}\right]}
+%  ||
+\newcommand{\brv}[1]{\left|{{}#1}\right|}
+%  {}
+\newcommand{\brf}[1]{\left\{{{}#1}\right\}}
+%  ||
+\newcommand{\brt}[1]{\left\Vert{{}#1}\right\Vert}
+%  <>
+\newcommand{\brg}[1]{\left<{{}#1}\right>}
+%  floor
+\newcommand{\floor}[1]{\lfloor{{}#1}\rfloor}
+%  ceil
+\newcommand{\ceil}[1]{\lceil{{}#1}\rceil}
+
+% font
+\newcommand{\fira}[1]{{\firacode {}#1}}
+
+% abbr command
+\newcommand{\ds}{\displaystyle}
+\newcommand{\pt}{\partial}
+\newcommand{\rint}[2]{\Big|^{{}#1}_{{}#2}}
+\newcommand{\leg}{\left\lgroup}
+\newcommand{\rig}{\right\rgroup}
+
+% math symbol
+\newcommand{\de}{\mathrm{d}}
+\newcommand{\im}{\mathrm{im}}
+\newcommand{\ord}{\mathrm{ord}}
+\newcommand{\cov}{\mathrm{Cov}}
+\newcommand{\lub}{\mathrm{LUB}}
+\newcommand{\glb}{\mathrm{GLB}}
+\newcommand{\var}{\mathrm{Var}}
+\newcommand{\aut}{\mathrm{Aut}}
+\newcommand{\sylow}{\mathrm{Sylow}}
+\newcommand{\xhi}{\mathcal{X}}
+\newcommand{\po}{\mathcal{P}}
+\newcommand{\bi}{\mathrm{b}}
+\newcommand{\rfl}{\mathcal{R}}
+
+% algorithmic symbol
+\newcommand{\gro}{\mathrm{O}}
+
+\newfontfamily\firacode{Fira Code}
+\newfontfamily\mincho{MS Mincho}
+
+% math
+\usepackage{ntheorem}
+\usepackage{ulem}
+
+\theoremseparator{ }
+\newtheorem{dft}{Definition}
+\newtheorem{tem}[dft]{Theorem}
+\newtheorem{lem}[dft]{Lemma}
+\newtheorem{epe}[dft]{Example}
+\newtheorem{cor}[dft]{Corollary}
+
+\usepackage{mathrsfs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{cancel}
+%\usepackage{amsthm}
+
+% control
+\usepackage{ifthen}
+\usepackage{intcalc}
+
+% format
+\usepackage{indentfirst}
+\usepackage{enumerate}
+\usepackage{url}
+\usepackage{setspace}
+\usepackage[utf8]{inputenc}  
+
+\usepackage{xcolor}
+
+\definecolor{ballblue}{rgb}{0.13, 0.67, 0.8}
+\definecolor{celestialblue}{rgb}{0.29, 0.59, 0.82}
+\definecolor{bananayellow}{rgb}{1.0, 0.88, 0.21}
+\definecolor{brilliantlavender}{rgb}{0.96, 0.73, 1.0}
+\definecolor{burgundy}{rgb}{0.5, 0.0, 0.13}
+\definecolor{cadmiumorange}{rgb}{0.93, 0.53, 0.18}
+\definecolor{aqua}{rgb}{0.0, 1.0, 1.0}
+\definecolor{auburn}{rgb}{0.43, 0.21, 0.1}
+\definecolor{brass}{rgb}{0.71, 0.65, 0.26}
+\definecolor{tangerine}{rgb}{0.95, 0.52, 0.0}
+\definecolor{portlandorange}{rgb}{1.0, 0.35, 0.21}
+\definecolor{mediumred-violet}{rgb}{0.73, 0.2, 0.52}
+
+% listing set
+\definecolor{func}{rgb}{0.29, 0.59, 0.82}
+\definecolor{ftype}{rgb}{0.95, 0.52, 0.0}
+\definecolor{cls}{rgb}{1.0, 0.35, 0.21}
+\definecolor{slf}{rgb}{0.73, 0.2, 0.52}
+\definecolor{backg}{HTML}{F7F7F7}
+\definecolor{str}{HTML}{228B22}
+% attestation
+\definecolor{atte}{RGB}{178,34,34}
+
+\usepackage{listings}
+
+\lstset{
+    backgroundcolor = \color{backg},
+    basicstyle = \small,%
+    escapeinside = ``,%
+    keywordstyle = \color{func},% \underbar,%
+    identifierstyle = {},%
+    commentstyle = \color{blue},%
+    stringstyle = \color{str}\ttfamily,%
+    %labelstyle = \tiny,%
+    extendedchars = false,%
+    linewidth = \textwidth,%
+}
+
+\usepackage{geometry}
+
+\geometry{
+    left=2.0cm,
+    right=2.0cm,
+    top=2.5cm,
+    bottom=2.5cm
+}
+
+\usepackage[
+    colorlinks,
+    linkcolor=blue,
+    anchorcolor=blue,
+    citecolor=blue
+]{hyperref}
+
+% table
+\usepackage{csvsimple}
+\usepackage{longtable}
+\usepackage{dcolumn}
+
+% graph
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usetikzlibrary{
+    quotes,
+    angles,
+    matrix,
+    arrows,
+    automata
+}
+
+
+\title{盲点钻石矿工}
+\author{Myriad Dreamin 2017211279 2017211301}
+\date{}
+
+\pgfplotsset{compat=1.16}
+\begin{document}
+\setlength{\parindent}{2em}
+%\renewcommand{\baselinestretch}{1.5}
+\setlength{\baselineskip}{2.5em}
+\maketitle
+\tableofcontents
+
+\newpage
+
+\section{约定}
+\subsection{mp,n,m}
+本文出现的$\mathrm{mp}$，总是四连通图模型。$n$表示$\mathrm{mp}$的行数，$m$表示$\mathrm{mp}$的列数。
+
+\subsection{dp}
+对于贪心法的dp,有二维.第一维表示行号，第二维保存列号。
+
+\subsection{k阶子式}
+矩阵$A$,第$i_1,i_2,\dots, i_k$行,第$j_1,j_2,\dots, j_k$列交叉形成的子式的表示法为:
+$$
+    A\begin{pmatrix}
+        i_1;i_2;\dots; i_k\\
+        j_1;j_2;\dots; j_k\\
+    \end{pmatrix}
+$$
+\section{程序控制}
+本次算法测试在Windows10平台,c++规范为g++/c++11.\\
+\indent 本次算法测试框架为上次排序算法的测试框架的抽象化，接受一个测试匿名函数和断言匿名函数.框架会在进入测试函数的时候计时，在离开测试函数的时候停止计时。如果定义了宏信号\fira{DEBUG}，并且传入了断言函数，框架会调用断言函数.\\
+\indent 算法时间测试的粒度为$1\mu s$.\\
+\indent 压入匿名函数的效率很高，并且是强制无参匿名函数，所以压函数栈和退函数栈的时间短于$1\mu s$，可以将这段时间忽略不计.\\
+\indent 此次算法的主要矛盾在于，如何获得最优值，而不是算法效率，因此算法时间复杂度在可以接受的范围内即可。本文也几乎只在意最终获取的总价值。\\
+\indent 考虑降低算法输入的规模.如果地图过大，显然可以将多个格点合并为一个格点，则降低了输入规模。 
+\section{c++生成二维正态分布}
+因为带有$\rho$参数的二维正态分布的难度和代价比较高,所以本文只使用$\vec X = (x_1,x_2)$两变量独立的正态分布.\\
+\indent \fira{functory\_range($\sigma_l$,$\sigma_r$)}接受两个方差值,返回一个调制函数\fira{functory},这个函数返回一个函数,函数中包含的两个正态的方差$\sigma\in [\sigma_l, \sigma_r]$.\\
+\indent \fira{functory}接受一个二维点$\vec \mu = (\mu_1,\mu_2)$，返回一个表达$(\mu_1,\mu_2)$服从正态分布的随机向量的函数\fira{generator}.\\
+\indent \fira{generator}不接受输入,每次调用返回一个总体服从在($\mu_1$,$\mu_2$)上各自服从($\sigma_l$,$\sigma_r$)的向量.
+\section{已知 $\{\mathrm{Manhattan}(\vec x, \vec y)\leqslant K\}$分布}
+\subsection{贪心法}
+贪心法原理：\\
+\indent 根据动态规划的递推公式。当视野为$K$时，对于当前格点$F=(a,b)$,Manhattan距离$d<K$的格点是已知的，显然我们有：
+$$
+	\mathrm{dp}[x][y] = \max{\mathrm{dp}[x][y+1], \mathrm{dp}[x+1][y]} + \mathrm{mp}[x][y].
+$$
+\indent 其中$\mathrm{mp}[x][y]$表示真实矿产分布.\\
+\indent 如果$\mathrm{dp}[a+1][b]>\mathrm{dp}[a][b]$，说明往下(往行号增大方向)走，在当前视野来看，是更优的。否则说明往右(往列号增大方向)走更优。\\
+\indent 特殊情况的处理：
+\begin{enumerate}[1]
+	\item 如果$a=n,b\neq m$，说明已经走到地图最下侧，此时不能往下走.
+	\item 如果$b=m,a\neq n$,说明已经走到地图最右侧，此时不能往右走.
+	\item 如果$a=n,b=m$，说明已经结束，此时退出算法.
+	\item 如果$k=1$,说明只有当前所在位置的视野，无法进行贪心.
+\end{enumerate}
+
+\subsection{猜图策略}
+\indent 如何根据已有信息，猜测图剩下的矿产分布。这里有一个很简单的边缘衰减模糊化的方法。\\
+\indent 假设矿工现在已经处于$(a,b)$,那么:
+$$
+	\mathrm{newmp}[a'][b'] =\left\{
+        \begin{array}{ll}
+            \mathrm{mp}[a'][b'] &, \mathrm{Manhattan}((a,b), (a',b')) \leqslant K;\\
+            c\cdot (\mathrm{newmp}[a'-1][b'] +\mathrm{newmp}[a'][b'-1]), & , \mathrm{Manhattan}((a,b), (a',b')) > K.
+        \end{array}
+    \right.
+$$
+\subsubsection{c的选取}
+对于$(a,b)$的真实值为$d$,它对$(a+1, b+1)$的贡献为$c(cd+cd)=2c^2d < d$.所以$0\leqslant c\leqslant \dfrac{\sqrt{2}}{2}$.否则会使衰减失败，对地图估计错误
+\subsubsection{特点}
+\begin{enumerate}[1]
+	\item 当c=0时，模糊化消失，此时模糊化的贪心原则退化为原始贪心原则.
+	\item 显然这种方法只能估计已经接触到的矿产风貌,对于完全隐藏在视野外的矿产，模糊化方式估计完全失效。
+\end{enumerate}
+\begin{table}[h]
+    \centering
+    \csvautotabular{miner.csv}
+    \caption{贪心K步和猜图迭代,部分1}
+\end{table}
+\begin{table}[h]
+    \centering
+    \csvautotabular{miner_2.csv}
+    \caption{贪心K步和猜图迭代,部分2}
+\end{table}
+\newpage
+\ \\
+\newpage
+\section{缺失 c\%分布}
+随机c\%个像素已知矿产含量，未知的地方填零。问该地图我们能得到多少价值？
+\subsection{朴素情况}
+不作任何处理，直接进行dp.这个方法已经较好，此时在$90\%\sim95\%$以内的未知矿产就能获得很大价值。
+
+\subsection{图像推断的思想}
+通过已知部分的图像还原整个图像信息，是图像补全的思想。现在已经是一个AI的热门领域，并且有过大量研究。当图像信息过少，补全难以做到，这个解决方案进一步变为图像推断。但是个人能力有限，从事的领域也不属于AI和计算领域，所以这里的图像推断采用另一种原始的方法——卷积模糊化做部分推断。
+\subsubsection{卷积方式}
+\indent 下文介绍的都是$3x3$卷积核，没有使用其他库，而是做了一个的简单版本使用。\\
+\indent 设需要处理的矩阵为$A_{m\times n}$,将其扩充为：
+$$
+    E(A) = \begin{pmatrix}
+        M_1 & M_2 & M_3\\
+        M_4 & A & M_5\\
+        M_6 & M_7 & M_8\\
+    \end{pmatrix}
+$$
+这样即使是$A$的边缘元素也能做一般化处理。\\
+\indent 设卷积核矩阵函数为$K_{3\times 3}: \mathcal{K}^3 \to \mathcal{K}$，则处理过后的矩阵即为
+$$
+    A'_{m\times n} = \brm{K(E(A)\begin{pmatrix}
+        a(i)-1;a(i);a(i)+1\\
+        a(j)-1;a(j);a(j)+1\\
+    \end{pmatrix})}_{m\times n}
+$$
+\indent 其中$a$将原$A$矩阵的位置映向$E(A)$矩阵中对应的位置.\\
+这里假设A矩阵都已经做了零值填充，即:
+$$
+    E_0(A) = \begin{pmatrix}
+        0 & \mathbf{0}^{T} & 0\\
+        \mathbf{0} & A & \mathbf{0}\\
+        0 & \mathbf{0}^T & 0\\
+    \end{pmatrix}
+$$
+\subsubsection{常滤波}
+常滤波的核如下：
+$$
+    \mathrm{Ker}_{c} = \frac{1}{9}\begin{pmatrix}
+        0 & 0 & 0\\
+        0 & 1 & 0\\
+        0 & 0 & 0\\
+    \end{pmatrix}
+$$
+这个核没有任何作用，相当于卷积的单位元.
+$$
+    K_{c} = M(2;2).
+$$
+\subsubsection{均值滤波}
+均值滤波的核如下：
+$$
+    \mathrm{Ker}_{ave} = \frac{1}{9}\begin{pmatrix}
+        1 & 1 & 1\\
+        1 & 1 & 1\\
+        1 & 1 & 1\\
+    \end{pmatrix}
+$$
+均值滤波的特性就仅仅是将附近值收集到一起。
+$$
+    K_{ave} = \sum_{i,j} \mathrm{Ker}_{ave}(i;j)M(i;j)
+$$
+\subsubsection{高斯滤波}
+高斯滤波的核如下:
+$$
+    \mathrm{Ker}_{gauss} = \frac{1}{16}\begin{pmatrix}
+        1 & 2 & 1\\
+        2 & 4 & 2\\
+        1 & 2 & 1\\
+    \end{pmatrix}
+$$
+高斯滤波对不同的距离的值做了加权，本质还是一种线性滤波。
+$$
+    K_{gauss} = \sum_{i,j} \mathrm{Ker}_{gauss}(i;j)M(i;j)
+$$
+\subsubsection{中值滤波}
+中值滤波是一种非线性滤波，返回矩阵九个值的中值元素。
+$$
+    K_{median} = \mathrm{Median}\{M(i;j)\}
+$$
+\newpage
+\subsection{模糊化不影响判断}
+% \begin{table}[ht]
+%     \centering
+%     \begin{tabular}{@{}p{1pt}@{}*6{c|}c}
+%         \csvreader[
+%             no head,
+%             late after line=\\,
+%             ]{ave_ave_absent_test_mutiple_1_10_guess2times_1_4.csv}{}{%
+%             & \csvcoli & \csvcolii & \csvcoliii & \csvcoliv & \csvcolv & \csvcolvi & \csvcolvii 
+%                 }%
+%     \end{tabular}
+% \end{table}
+下面是$K_{ave}$作用于矩阵以后，dp与最优答案的比值表。
+\begin{table}[h]
+    \centering
+\csvautotabular[]{ave_ave_absent_test_mutiple_1_10_guess2times_1_4.csv}
+\caption{$\sigma \in [1,2]$, c=0.9}
+\end{table}\\
+\begin{table}[h]
+    \centering
+    \csvautotabular{ave_ave_absent_test_mutiple_1_10_guess2times_1_4_2.csv}
+    \caption{$\sigma \in [1,2]$, c=0.9}
+\end{table}\\
+\indent 可以看见随着$K_{ave}$系数增大，改变价值的能力几乎是不变的。
+\newpage
+下面是$K_{gauss}$作用于矩阵以后，dp与与最优答案的比值表。
+\begin{table}[h]
+    \centering
+\csvautotabular{gauss_gauss_absent_test_mutiple_1_10_guess2times_1_400.csv}
+\caption{$\sigma \in [1,20]$, c=0.9}
+\end{table}\\
+\begin{table}[h]
+    \centering
+    \csvautotabular{gauss_gauss_absent_test_mutiple_1_10_guess2times_1_400_2.csv}
+    \caption{$\sigma \in [1,20]$, c=0.9}
+\end{table}\\
+其与$K_{ave}$相同，对系数均不敏感。
+
+\newpage
+\subsection{价值集中程度对滤波估计的影响}
+下表对比了$K_{ave},K_{gauss},K_{median}$受矿产分布方差的影响.
+\begin{table}[h]
+    \centering
+    \csvautotabular{sigma_between_4_100_mapsize_40_40_guess2times.csv}
+    \caption{scalar = $40\times 40$, $\sigma \in [\sqrt{s},2\sqrt{s}]$, c=0.9}
+\end{table}\\
+随着方差增大,除了$K_{median}$,$K_{c},K_{ave}, K_{gauss}$的效率下降.\\
+而$K_{median}$的效率是出人意料的，猜想其效率上升的原因是。当$A$中孤立元素过多，$K_{median}$滤去了太多细节，因此获得的价值不如不优化。当$\sigma$增大时，$K_{median}$迅速补全缺失的聚集空隙，起到了还原的效果。
+\newpage
+\subsection{地图规模对滤波估计的影响}
+下表对比了$K_{ave},K_{gauss},K_{median}$受地图规模的影响.
+\begin{table}[h]
+    \centering
+    \csvautotabular{dense_between_100_10000_guess2times.csv}
+    \caption{scalar = $[100, 10000]$, $\sigma = \sqrt{10}$, c=0.9}
+\end{table}\\
+选取了较为适中的$\sigma$,在这个环境下,明确看见，地图规模越大，估计越差。
+\subsubsection{对$K_{gauss},K_{ave}$的进一步测试}
+辛辛苦苦写出了$K_{gauss},K_{ave}$，看见其效果这么差.心有不甘，但是做过许多测验，最终都没能将这两个滤波器拯救回来.仔细想想，3x3核的作用实在有限，看来算法不是一味地生搬硬套。
+\section{总结}
+文章第一部分针对$k$步矿工问题提供了两个策略，一个贪心策略，一个猜图策略。贪心策略已经有比较好的表现，而猜图策略能够略微增加价值收益。\\
+\indent 文章第二部分针对$c\%$矿工问题测试了基于几个滤波器的猜图策略。对于均值滤波器和高斯滤波器，并未有较好的表现，可能原因是滤波器影响范围太小，对图像补全没有很好的效果。\\
+\indent 值得关注的是中值滤波器，它在有限的范围内(地图规模较小，或地图矿产分布较为分散)极大地提高了价值获取的效率。但是更加值得注意的一点是，即使有90\%的地图不知道，$K_c$仍然有较好的效果，这时候应该果断根据已有信息取得价值，而不是歪曲信息想方设法完全还原地图。\\
+\indent 本文所有代码实现不依赖除C++标准库Algorithm中的有限简单函数，和不值得重复实现地无关紧要的函数以外其他的任何库，均有算法实现。
+\end{document}
