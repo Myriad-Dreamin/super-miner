@@ -2,7 +2,7 @@
 #define DEBUG
 #define DONOTPRINT
 
-typedef double test_type;
+typedef int test_type;
 
 #include "../src/miner_tester.h"
 #include "../alter/tools.h"
@@ -10,10 +10,10 @@ typedef double test_type;
 #include <string>
 
 const int GUESS_CNT = 2;
-const int map_size_l = 10, map_size_r = 100, step = 10;
+const int map_row = 40, map_col = 40;
 const int repeat_times = 10;
-const double unknown_rate = 0.90;
-const std::string comment = "dense_between_100_10000_guess2times";
+const double unknown_rate = 0.9, sigma_l = 4, sigma_r = 100, step = 4;
+const std::string comment = "sigma_between_4_100_guess2times";
 
 int main ()
 {
@@ -53,15 +53,14 @@ int main ()
     ker_gauss2[1][0] = ker_gauss[1][0] * 1.1; ker_gauss2[1][1] = ker_gauss[1][1] * 1.1;  ker_gauss2[1][2] = ker_gauss[1][2] * 1.1;
     ker_gauss2[2][0] = ker_gauss[2][0] * 1.1; ker_gauss2[2][1] = ker_gauss[2][1] * 1.1;  ker_gauss2[2][2] = ker_gauss[2][2] * 1.1;
 
-    auto self_ave_convolutor = map_guesser::self_convolution<double, test_type>(ker_ave);
-    auto self_ave2_convolutor = map_guesser::self_convolution<double, test_type>(ker_ave2);
-    auto self_gauss_convolutor = map_guesser::self_convolution<double, test_type>(ker_gauss);
-    auto self_gauss2_convolutor = map_guesser::self_convolution<double, test_type>(ker_gauss2);
-    auto self_median_convolutor = map_guesser::self_convolution_nonlinear<test_type>(filter_33::median_filter<test_type>);
+    auto self_ave_convolutor = map_guesser::self_convolution<double, int>(ker_ave);
+    auto self_ave2_convolutor = map_guesser::self_convolution<double, int>(ker_ave2);
+    auto self_gauss_convolutor = map_guesser::self_convolution<double, int>(ker_gauss);
+    auto self_gauss2_convolutor = map_guesser::self_convolution<double, int>(ker_gauss2);
+    auto self_median_convolutor = map_guesser::self_convolution_nonlinear<int>(filter_33::median_filter<int>);
 
-    for (int map_row = map_size_l; map_row <= map_size_r; map_row += step) {
-        int map_col = map_row;
-        int c = map_row * map_col;
+    for (double c = sigma_l; c <= sigma_r; c += step) {
+        printf("c%lf\n",c);
 
         long double ret_standard = 0;
         test_type ret_do_nothing = 0;
@@ -73,7 +72,7 @@ int main ()
 
         for (int cc = 0; cc < repeat_times; cc++) {
             printf("repeating %d case\n", cc);
-            auto gen = BiNormMinerMapGenerator<test_type>(map_row, map_col, 20, 10000, 10, 10);
+            auto gen = BiNormMinerMapGenerator<test_type>(map_row, map_col, 200, 10000, c, c * 4);
             auto mp = gen.gen();
 
             god_miner.read_map(mp, map_row, map_col);
@@ -86,13 +85,9 @@ int main ()
 
             god_miner.show_map();
             ret_standard += god_miner.run();
-            printf("%Lf\n", ret_standard);
-            puts("------------------------");
 
             absent_miner.read_absent_map(absent_gen.gen(gen, unknown_rate, 0), map_row, map_col);
             ret_do_nothing += absent_miner.run();
-            printf("%lf\n", ret_do_nothing);
-            puts("------------------------");
 
             auto absent_a = std::move(AbsentMinerMapGenerator<test_type>(absent_gen));
             for (int guess_cnt = 0; guess_cnt < GUESS_CNT; guess_cnt++) {
@@ -100,7 +95,6 @@ int main ()
                 absent_ave.show_absent_map();
             }
             ret_ave += absent_ave.run();
-            printf("%lf\n", ret_ave);
             puts("------------------------");
 
             auto absent_b = std::move(AbsentMinerMapGenerator<test_type>(absent_gen));
@@ -109,7 +103,6 @@ int main ()
                 absent_ave2.show_absent_map();
             }
             ret_ave2 += absent_ave2.run();
-            printf("%lf\n", ret_ave2);
             puts("------------------------");
 
             auto absent_c = std::move(AbsentMinerMapGenerator<test_type>(absent_gen));
@@ -118,7 +111,6 @@ int main ()
                 absent_gauss.show_absent_map();
             }
             ret_gauss += absent_gauss.run();
-            printf("%lf\n", ret_gauss);
             puts("------------------------");
 
             auto absent_d = std::move(AbsentMinerMapGenerator<test_type>(absent_gen));
@@ -127,7 +119,6 @@ int main ()
                 absent_gauss2.show_absent_map();
             }
             ret_gauss2 += absent_gauss2.run();
-            printf("%lf\n", ret_gauss2);
             puts("------------------------");
 
             auto absent_e = std::move(AbsentMinerMapGenerator<test_type>(absent_gen));
@@ -136,7 +127,6 @@ int main ()
                 absent_median.show_absent_map();
             }
             ret_median += absent_median.run();
-            printf("%lf\n", ret_median);
             puts("---------------~~~~~~~~~~~~~~~~---------------");
             // absent_miner.read_absent_map_and_guess(absent_mp, map_row, map_col);
         }

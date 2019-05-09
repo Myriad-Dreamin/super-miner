@@ -13,7 +13,10 @@
 #include <iomanip>
 #include <cmath>
 
+/* 矩阵评估器 */
 namespace map_evaluator {
+
+    /* 贪心策略 */
 	template<typename ArrType>
     std::function<int(int, int)> simple(ArrType **dp, const ArrType **mp, const int row, const int col, const int k)
 	{
@@ -92,6 +95,7 @@ namespace map_evaluator {
 		};
 	}
 
+    /* 猜图策略 */
     template<typename ArrType>
     std::function<int(int, int)> image(ArrType **dp, const ArrType **mp, const int row, const int col, const int k, const double c)
 	{
@@ -182,9 +186,10 @@ namespace map_evaluator {
 }
 
 
-
+/* 基于卷积的猜图生成器 */
 namespace map_guesser {
 
+    /* 线性卷积 */
     template<typename KerType, typename ArrType>
     std::function<void(ArrType **, int, int)> self_convolution(
         typename KernalMatrix<KerType>::simple_matrix33 kernal
@@ -195,6 +200,7 @@ namespace map_guesser {
         };
     }
 
+    /* 非线性卷积 */
     template<typename ArrType>
     std::function<void(ArrType **, int, int)> self_convolution_nonlinear(
         typename NonlinearKernalMatrix<ArrType>::nonlinear_filter_generator kernal_generator
@@ -207,8 +213,10 @@ namespace map_guesser {
 }
 
 
+/* 上帝视角 */
 namespace god_run {
 
+    /* 解决方案 */
     template<typename ArrType>
     void solve(ArrType &ret, ArrType **dp, ArrType **sig, const ArrType **mp, const int row, const int col)
     {
@@ -251,6 +259,7 @@ namespace god_run {
         return;
     }
 
+    /* 缺省模式解决方案 */
     template<typename ArrType>
     void solve_absent(
         ArrType &ret, ArrType **dp, ArrType **sig,
@@ -298,6 +307,7 @@ namespace god_run {
         return;
     }
 
+    /* 绑定参数 */
     template<typename ArrType>
     std::function<void()> bind_variables(
         ArrType *ret, ArrType **dp, ArrType **sig, const ArrType **mp, const int row, const int col
@@ -307,6 +317,7 @@ namespace god_run {
         };
     }
 
+    /* 缺省模式绑定参数 */
     template<typename ArrType>
     std::function<void()> bind_variables_absent(
         ArrType *ret, ArrType **dp, ArrType **sig,
@@ -318,8 +329,10 @@ namespace god_run {
     }
 }
 
+/* 贪心策略 */
 namespace snake_run {
 
+    /* 解决方案 */
     template<typename ArrType>
 	void solve(ArrType &ret, ArrType **dp, ArrType **sig, const ArrType **mp, const int row, const int col, const int k)
 	{
@@ -348,6 +361,7 @@ namespace snake_run {
         }
 	}
 
+    /* 绑定参数 */
     template<typename ArrType>
     std::function<void()> bind_variables(
         ArrType *ret, ArrType **dp, ArrType **sig, const ArrType **mp, const int row, const int col, const int k
@@ -358,8 +372,11 @@ namespace snake_run {
     }
 }
 
+/* 猜图策略 */
 namespace image_run {
     // c应该小于 0.7
+
+    /* 解决方案 */
     template<typename ArrType>
 	void solve(
         ArrType &ret, ArrType **dp, ArrType **sig,
@@ -388,6 +405,7 @@ namespace image_run {
         }
 	}
 
+    /* 绑定参数 */
     template<typename ArrType>
     std::function<void()> bind_variables(
         ArrType *ret, ArrType **dp, ArrType **sig,

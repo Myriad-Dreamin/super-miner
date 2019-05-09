@@ -26,12 +26,14 @@
     } while(0)\
 
 
+/* 二维矩阵生成器基类 */
 template<typename ArrType>
 class BiMapGenerator
 {
 protected:
     int map_row, map_col;
     ArrType **space;
+
 public:
 
     BiMapGenerator<ArrType>()
@@ -47,12 +49,18 @@ public:
         space = nullptr;
     }
 
+    /* 矩阵行数 */
     const int row_size() const {return map_row;}
+    
+    /* 矩阵列数 */
     const int col_size() const {return map_col;}
+    
+    /* 返回只读的矩阵 */
     const ArrType **exported_space() const {return const_cast<const ArrType **>(space);}
 };
 
 
+/* 二维矩阵生成器, 带二维正态生成 */
 template<typename ArrType>
 class BiNormMinerMapGenerator: public BiMapGenerator<ArrType>
 {
@@ -60,6 +68,7 @@ private:
     int mine_cnt, mine_siz;
     double sigl, sigr;
     bivari::functor<int>::functory gen_functory;
+
 public:
     BiNormMinerMapGenerator(): BiMapGenerator<ArrType>()
     {
@@ -86,7 +95,8 @@ public:
         }
     }
 
-    BiNormMinerMapGenerator(const BiNormMinerMapGenerator &rg) {
+    BiNormMinerMapGenerator(const BiNormMinerMapGenerator &rg)
+    {
         if (this == &rg) {
             return;
         }
@@ -114,7 +124,8 @@ public:
         }
     }
 
-    BiNormMinerMapGenerator(BiNormMinerMapGenerator &&rg) {
+    BiNormMinerMapGenerator(BiNormMinerMapGenerator &&rg)
+    {
         if (this == &rg) {
             return;
         }
@@ -146,6 +157,7 @@ public:
         this->space = nullptr;
     }
 
+    /* 生成矩阵, 自定义随机函数 */
     const ArrType **gen(std::function<ArrType()> rand_generator)
     {
         if (this->space == nullptr) {
@@ -175,6 +187,7 @@ public:
         return this->exported_space();
     }
 
+    /* 生成矩阵 */
     const ArrType **gen()
     {
         if (this->space == nullptr) {
@@ -193,9 +206,11 @@ public:
             y = rand_uint() % this->map_col;
             // std::cout << "randcenter " << x << " " << y << std::endl;
             z = rand_uint() % mine_siz;
+            // printf("%d", z);
             auto gen = gen_functory(x, y);
             while(z--) {
                 ret = gen();
+                
                 // std::cout << "randgen " << ret.first << " " << ret.second << std::endl;
                 if (
                     (0 <= ret.first && ret.first < this->map_row) &&
@@ -210,6 +225,7 @@ public:
 };
 
 
+/* 二维矩阵生成器, 随机掏空矩阵 */
 template<typename ArrType>
 class AbsentMinerMapGenerator: public BiMapGenerator<ArrType>
 {
@@ -229,7 +245,8 @@ public:
         }
     }
 
-    AbsentMinerMapGenerator(const AbsentMinerMapGenerator &rg) {
+    AbsentMinerMapGenerator(const AbsentMinerMapGenerator &rg)
+    {
         if (this == &rg) {
             return;
         }
@@ -259,7 +276,8 @@ public:
         }
     }
 
-    AbsentMinerMapGenerator(const BiMapGenerator<ArrType> &rg) {
+    AbsentMinerMapGenerator(const BiMapGenerator<ArrType> &rg)
+    {
         if (this == &rg) {
             return;
         }
@@ -309,6 +327,8 @@ public:
         delete[] this->space;
     }
 
+
+    /* 根据已有矩阵生成缺失pec%值的矩阵, 以invalid_arr_element填充 */
     const ArrType **gen(const BiMapGenerator<ArrType> &bimap, double pec, ArrType invalid_arr_element)
     {
         if (this->space != nullptr && (this->map_col != bimap.col_size() || this->map_row != bimap.row_size())) {
@@ -347,6 +367,7 @@ public:
         return this->exported_space();
     }
 
+    /* 猜图 */
     const ArrType **guess(
         std::function<void(ArrType**, int, int)> guesser
     ) {
@@ -356,7 +377,7 @@ public:
 };
 
 
-
+/* 矿工测试框架实例的基类 */
 template<typename ArrType>
 class Miner: public Tester
 {
@@ -415,6 +436,7 @@ public:
         *as_assign = const_cast<ArrType**>(rg.space);
     }
     
+    /* 读矩阵 */
     void read_map(const ArrType **out_space, int row, int col)
     {
         map_row = row; map_col = col;
@@ -422,6 +444,7 @@ public:
         *as_assign = const_cast<ArrType **>(out_space);
     }
 
+    /* 打印矩阵 */
     void show_map()
     {
     # ifndef DONOTPRINT
@@ -436,6 +459,8 @@ public:
     }
 };
 
+
+/* 贪心策略 */
 template<typename ArrType>
 class SnakeMiner: public Miner<ArrType>
 {
@@ -483,6 +508,8 @@ public:
     }
 };
 
+
+/* 猜图策略 */
 template<typename ArrType>
 class ImageMiner: public Miner<ArrType>
 {
@@ -531,6 +558,8 @@ public:
     }
 };
 
+
+/* 上帝(最优参考类) */
 template<typename ArrType>
 class GodMiner: public Miner<ArrType>
 {
@@ -581,6 +610,7 @@ public:
 };
 
 
+/* 矩阵缺省测试类 */
 template<typename ArrType>
 class AbsentMiner: public Tester
 {
@@ -649,6 +679,7 @@ public:
         *as_assign = const_cast<ArrType**>(rg.absent_space);
     }
     
+    /* 读矩阵 */
     void read_map(const ArrType **out_space, int row, int col)
     {
         map_row = row; map_col = col;
@@ -656,6 +687,7 @@ public:
         *as_assign = const_cast<ArrType **>(out_space);
     }
 
+    /* 读缺省矩阵 */
     void read_absent_map(const ArrType **out_space, int row, int col)
     {
         if (map_row != row || map_col != col) {
@@ -665,6 +697,7 @@ public:
         *as_assign = const_cast<ArrType **>(out_space);
     }
 
+    /* 打印矩阵 */
     void show_map()
     {
     # ifndef DONOTPRINT
@@ -678,6 +711,7 @@ public:
         return ;
     }
 
+    /* 打印缺省矩阵 */
     void show_absent_map()
     {
     # ifndef DONOTPRINT
@@ -705,6 +739,12 @@ public:
             &ret, dp, sig, mp, ab_mp, row, col
         ), [&ret, sig, mp, row, col]() mutable -> void {
             ArrType tmpret = 0;
+            // for (int i = 0; i < row; i++) {
+            //     for (int j = 0; j < col; j++) {
+            //         std::cout << sig[i][j] << " ";
+            //     }
+            //     puts("");
+            // }
             for (int curx = 0, cury = 0;;) {
                 if (curx == row - 1) {
                     while (cury < col) {

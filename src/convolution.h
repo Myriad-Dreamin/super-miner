@@ -5,22 +5,29 @@
 #include <cstring>
 #include <algorithm>
 
+/* 线性卷积核 */
 template<typename KerType>
 struct KernalMatrix {
     typedef KerType simple_matrix33[3][3];
 };
 
+
+/* 非线性卷积核 */
 template<typename ArrType>
 struct NonlinearKernalMatrix {
     typedef std::function<ArrType(int, int)> nonlinear_filter;
     typedef std::function<nonlinear_filter(ArrType **)> nonlinear_filter_generator;
 };
 
+
+/* 3x3滤波生成 */
 namespace filter_33 {
+    
+    /* 中值滤波 */
     template<typename ArrType>
-    std::function<ArrType(int, int)> median_filter(ArrType **mat) {
+    std::function<ArrType(int, int)> median_filter(ArrType **mat)
+    {
         return [mat](int x, int y) -> ArrType {
-            // PRINT_ARR_2(mat, 5, 7);
             static ArrType median_arr[10];
             median_arr[0] = mat[x--][y];
             median_arr[1] = mat[x][y--];
@@ -38,21 +45,25 @@ namespace filter_33 {
 }
 
 
-
+/* 卷积器基类 */
 template<typename ArrType>
 class convolutor_base
 {
 protected:
     bool kernaled;
+
 public:
-    convolutor_base(){kernaled = false;}
+    convolutor_base() {kernaled = false;}
     
+    /* 返回卷积核加载状态 */
     bool is_kernal_loaded(){return kernaled;}
     
+    /* 卷积函数 */
     virtual void convolute(ArrType **dst, const int row, const int col, ArrType **src) = 0;
 };
 
 
+/* 线性卷积器类 */
 template<typename KerType, typename ArrType>
 class convolutor_33: public convolutor_base<ArrType>
 {
@@ -89,12 +100,14 @@ public:
         con.kernaled = false;
     }
 
+    /* 加载核矩阵 */
     void load_kernal(const typename KernalMatrix<KerType>::simple_matrix33 loading_kernal)
     {
         memcpy(kernal, loading_kernal, sizeof(typename KernalMatrix<KerType>::simple_matrix33));
         kernaled = true;
     }
 
+    /* 计算卷积 */
     void convolute(ArrType **src, const int row, const int col, ArrType **dst=nullptr) override
     {  
         if (kernaled == false) {
@@ -115,36 +128,59 @@ public:
             for (int i = 0; i < mat_row; i++) {
                 continual_space[i] = new ArrType[mat_col];
             }
+            memset(continual_space[0], 0, sizeof(ArrType) * mat_col);
+            memset(continual_space[mat_row - 1], 0, sizeof(ArrType) * mat_col);
         }
-        int line_size = sizeof(ArrType) * mat_col;
-        for (int i = 0; i < mat_row; i++) {
-            memset(continual_space[i], 0, line_size);
+        
+        int line_size = sizeof(ArrType) * col;
+        for (int i = 1; i <= row; i++) {
+            continual_space[i][0] = 0;
+            memcpy(continual_space[i] + 1, src[i - 1], line_size);
+            continual_space[i][col + 1] = 0;
         }
+        
+
         ArrType tmp;
         for (int i = 0; i < row; i++) {
             for (int j = 0; j < col; j++) {
-                tmp = src[i][j];
+                src[i][j] = 0;
                 for (int ofsx = 0; ofsx < 3; ofsx++) {
                     for (int ofsy = 0; ofsy < 3; ofsy++) {
-                        continual_space[i + ofsx][j + ofsy] += tmp * kernal[ofsx][ofsy];
+                        src[i][j] += continual_space[i + ofsx][j + ofsy] * kernal[ofsx][ofsy];
                     }
                 }
             }
         }
         
         if (dst != nullptr) {
-            int line_size = sizeof(ArrType) * col;
-            for (int i = 0; i < row; i++) {
-                memcpy(dst[i], continual_space[i + 1] + 1, line_size);
+            if (dst != src) {
+                int line_size = sizeof(ArrType) * col;
+                for (int i = 0; i < row; i++) {
+                    memcpy(dst[i], src[i], line_size);
+                }
+                for (int i = 0; i < row; i++) {
+                    memcpy(src[i], continual_space[i + 1] + 1, line_size);
+                }
+                for (int i = 0; i < row; i++) {
+                    memcpy(continual_space[i + 1] + 1, dst[i], line_size);
+                }
+            } else {
+                for (int i = 0; i < row; i++) {
+                    memcpy(continual_space[i + 1] + 1, src[i], line_size);
+                }
             }
         }
     }
+
+    /* 返回只读二维矩阵 */
     const ArrType **convolute_space()
     {
         return const_cast<const ArrType **>(continual_space);
     }
 };
 
+
+/* 非线性卷积器类 */
 template<typename ArrType>
 class convolutor_33_non_linear: public convolutor_base<ArrType>
 {
@@ -156,11 +192,13 @@ protected:
     int mat_row, mat_col;
 
 public:
+
     convolutor_33_non_linear(): convolutor_base<ArrType>()
     {
         mat_row = mat_col = 0;
         continual_space = nullptr;
     }
+
     convolutor_33_non_linear(
         const typename NonlinearKernalMatrix<ArrType>::nonlinear_filter_generator loading_kernal
     ): convolutor_base<ArrType>() {
@@ -185,6 +223,8 @@ public:
         con.kernaled = false;
     }
 
+    
+    /* 加载核生成器 */
     void load_kernal(
         const typename NonlinearKernalMatrix<ArrType>::nonlinear_filter_generator loading_kernal
     ) {
@@ -192,6 +232,7 @@ public:
         kernaled = true;
     }
 
+    /* 计算卷积 */
     void convolute(ArrType **src, const int row, const int col, ArrType **dst=nullptr) override
     {  
         if (kernaled == false) {
